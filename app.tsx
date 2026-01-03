@@ -290,15 +290,15 @@ const LetterCard = ({ letter, data, onClick, size = 'large', showWord = true, sh
 }) => (
   <div
     onClick={onClick}
-    className={`cursor-pointer rounded-3xl shadow-lg transform transition-all duration-300 hover:scale-105 active:scale-95 flex flex-col items-center justify-center ${size === 'large' ? 'p-8 md:p-12' : 'p-4 md:p-6'}`}
-    style={{ backgroundColor: data.color + '30', border: `4px solid ${data.color}` }}
+    className={`cursor-pointer rounded-2xl md:rounded-3xl shadow-lg transform transition-all duration-300 hover:scale-105 active:scale-95 flex flex-col items-center justify-center ${size === 'large' ? 'p-6 md:p-10' : 'p-4 md:p-6'}`}
+    style={{ backgroundColor: data.color + '30', border: `3px solid ${data.color}` }}
   >
     <div className="flex items-center gap-2">
       <AnimatedLetter letter={letter} color={data.color} size={size === 'large' ? 'large' : 'medium'} />
       {showLower && <AnimatedLetter letter={lowercaseMap[letter]} color={data.color} size={size === 'large' ? 'large' : 'medium'} />}
     </div>
-    <span className={size === 'large' ? 'text-6xl md:text-8xl my-2 md:my-4' : 'text-3xl md:text-5xl my-1 md:my-2'}>{data.emoji}</span>
-    {showWord && <span className={`font-semibold ${size === 'large' ? 'text-xl md:text-3xl' : 'text-sm md:text-xl'}`} style={{ color: data.color }}>{data.word}</span>}
+    <span className={size === 'large' ? 'text-5xl md:text-7xl my-1 md:my-2' : 'text-4xl md:text-5xl my-1'}>{data.emoji}</span>
+    {showWord && <span className={`font-semibold ${size === 'large' ? 'text-lg md:text-2xl' : 'text-base md:text-lg'}`} style={{ color: data.color }}>{data.word}</span>}
   </div>
 );
 
@@ -468,7 +468,7 @@ const BubblePop = ({ letters, onComplete }: { letters: string[]; onComplete: () 
   };
 
   return (
-    <div className="relative w-full h-80 md:h-96 bg-gradient-to-b from-blue-200 to-blue-400 rounded-3xl overflow-hidden">
+    <div className="relative w-full h-64 md:h-80 bg-gradient-to-b from-blue-200 to-blue-400 rounded-3xl overflow-hidden">
       <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 rounded-full px-6 py-2">
         <p className="text-xl font-bold">Pop the <span style={{ color: letterData[target as LetterKey]?.color }}>{target}</span> bubbles!</p>
       </div>
@@ -1092,7 +1092,7 @@ export default function AlphabetAdventure() {
 
   if (screen === 'home') {
     return (
-      <div className={`min-h-screen bg-gradient-to-b ${theme.gradient} p-4 md:p-8 flex flex-col items-center`}>
+      <div className={`h-screen overflow-hidden bg-gradient-to-b ${theme.gradient} p-3 md:p-4 flex flex-col items-center`}>
         <ConfettiEffect show={confetti} />
         <BadgePopup badge={newBadge} onClose={() => setNewBadge(null)} />
         {showSettings && <SettingsPanel settings={progress.settings} onUpdate={s => setProgress(p => ({ ...p, settings: s }))} onClose={() => setShowSettings(false)} />}
@@ -1107,48 +1107,47 @@ export default function AlphabetAdventure() {
           </div>
         </div>
 
-        <h1 className="text-4xl md:text-6xl font-bold text-purple-600 mb-2 text-center">🌈 Alphabet Adventure 🌈</h1>
-        <p className="text-lg md:text-2xl text-gray-600 mb-2">Learn your ABCs!</p>
+        <h1 className="text-3xl md:text-5xl font-bold text-purple-600 mb-1 text-center">🌈 Alphabet Adventure 🌈</h1>
 
         {progress.streak > 0 && (
-          <div className="bg-orange-100 rounded-full px-4 py-1 mb-4">
-            <span className="text-orange-500 font-bold">🔥 {progress.streak} day streak!</span>
+          <div className="bg-orange-100 rounded-full px-3 py-0.5 mb-2">
+            <span className="text-orange-500 font-bold text-sm">🔥 {progress.streak} day streak!</span>
           </div>
         )}
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-4xl mb-6">
+        <div className="grid grid-cols-5 md:grid-cols-7 lg:grid-cols-10 gap-1.5 md:gap-2 w-full max-w-6xl flex-1 content-start">
           {levels.map((l, i) => {
             const done = progress.completedLevels.includes(i);
-            const unlocked = i === 0 || progress.completedLevels.includes(i - 1);
+            const unlocked = true; // All levels unlocked
             return (
               <button
                 key={i}
                 onClick={() => unlocked && startLevel(i)}
                 disabled={!unlocked}
-                className={`p-3 md:p-4 rounded-2xl font-bold text-white shadow-lg transform transition-all active:scale-95 ${
+                className={`p-2 md:p-3 rounded-xl font-bold text-white shadow-md transform transition-all active:scale-95 ${
                   done ? 'bg-green-400' : unlocked ? 'bg-gradient-to-r from-purple-400 to-pink-400 hover:scale-105' : 'bg-gray-300 cursor-not-allowed'
                 }`}
               >
-                <span className="text-2xl md:text-4xl">{l.icon}</span>
-                <p className="text-xs md:text-sm mt-1">{l.name}</p>
-                {done && <span className="text-sm">✓</span>}
+                <span className="text-xl md:text-2xl">{l.icon}</span>
+                <p className="text-[10px] md:text-xs mt-0.5 truncate">{l.name}</p>
+                {done && <span className="text-xs">✓</span>}
               </button>
             );
           })}
         </div>
 
-        <div className="bg-white/80 rounded-2xl p-4 flex gap-6">
+        <div className="bg-white/80 rounded-xl p-3 flex gap-4 mt-2">
           <div className="text-center">
-            <p className="text-2xl font-bold text-purple-600">⭐ {progress.score}</p>
-            <p className="text-gray-500 text-sm">Score</p>
+            <p className="text-xl font-bold text-purple-600">⭐ {progress.score}</p>
+            <p className="text-gray-500 text-xs">Score</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-green-500">📚 {progress.completedLevels.length}</p>
-            <p className="text-gray-500 text-sm">Levels</p>
+            <p className="text-xl font-bold text-green-500">📚 {progress.completedLevels.length}</p>
+            <p className="text-gray-500 text-xs">Levels</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-yellow-500">🏆 {progress.badges.length}</p>
-            <p className="text-gray-500 text-sm">Badges</p>
+            <p className="text-xl font-bold text-yellow-500">🏆 {progress.badges.length}</p>
+            <p className="text-gray-500 text-xs">Badges</p>
           </div>
         </div>
       </div>
@@ -1157,13 +1156,13 @@ export default function AlphabetAdventure() {
 
   if (screen === 'levelComplete') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-yellow-200 via-orange-100 to-pink-200 flex flex-col items-center justify-center p-4">
+      <div className="h-screen overflow-hidden bg-gradient-to-b from-yellow-200 via-orange-100 to-pink-200 flex flex-col items-center justify-center p-4">
         <ConfettiEffect show={true} />
         <BadgePopup badge={newBadge} onClose={() => setNewBadge(null)} />
-        <div className="text-8xl md:text-[10rem] mb-4 animate-bounce">🎉</div>
-        <h1 className="text-3xl md:text-5xl font-bold text-orange-500 mb-2">Level Complete!</h1>
-        <p className="text-xl md:text-3xl text-gray-600 mb-4">{level.name}</p>
-        <p className="text-2xl font-bold text-purple-600 mb-8">Score: {progress.score}</p>
+        <div className="text-6xl md:text-8xl mb-2 animate-bounce">🎉</div>
+        <h1 className="text-2xl md:text-4xl font-bold text-orange-500 mb-1">Level Complete!</h1>
+        <p className="text-lg md:text-2xl text-gray-600 mb-2">{level.name}</p>
+        <p className="text-xl font-bold text-purple-600 mb-4">Score: {progress.score}</p>
         <div className="flex gap-4">
           <button onClick={() => setScreen('home')} className="px-6 py-3 bg-gray-400 text-white rounded-full font-bold text-lg active:scale-95">
             🏠 Home
@@ -1178,18 +1177,18 @@ export default function AlphabetAdventure() {
 
   if (screen === 'complete') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-yellow-300 via-pink-200 to-purple-300 flex flex-col items-center justify-center p-4">
+      <div className="h-screen overflow-hidden bg-gradient-to-b from-yellow-300 via-pink-200 to-purple-300 flex flex-col items-center justify-center p-4">
         <ConfettiEffect show={true} />
-        <div className="text-8xl mb-4 animate-bounce">👑</div>
-        <h1 className="text-4xl md:text-6xl font-bold text-purple-600 mb-4">ABC Champion!</h1>
-        <p className="text-xl text-gray-600 mb-6">You mastered all 26 letters!</p>
-        <div className="flex flex-wrap justify-center gap-2 max-w-lg mb-6">
+        <div className="text-6xl md:text-8xl mb-2 animate-bounce">👑</div>
+        <h1 className="text-3xl md:text-5xl font-bold text-purple-600 mb-2">ABC Champion!</h1>
+        <p className="text-lg text-gray-600 mb-3">You mastered all 26 letters!</p>
+        <div className="flex flex-wrap justify-center gap-1.5 max-w-2xl mb-4">
           {(Object.keys(letterData) as LetterKey[]).map(l => (
             <AnimatedLetter key={l} letter={l} color={letterData[l].color} size="small" />
           ))}
         </div>
-        <p className="text-3xl font-bold text-orange-500 mb-8">Final Score: {progress.score}</p>
-        <button onClick={() => { setScreen('home'); setLevelIdx(0); }} className="px-8 py-4 bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-full font-bold text-xl active:scale-95">
+        <p className="text-2xl font-bold text-orange-500 mb-4">Final Score: {progress.score}</p>
+        <button onClick={() => { setScreen('home'); setLevelIdx(0); }} className="px-6 py-3 bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-full font-bold text-lg active:scale-95">
           🔄 Play Again
         </button>
       </div>
@@ -1203,14 +1202,14 @@ export default function AlphabetAdventure() {
     // Learn mode
     if (level.mode === 'learn') {
       return (
-        <div className={`min-h-screen bg-gradient-to-b ${theme.gradient} flex flex-col items-center p-4 md:p-8`}>
+        <div className={`h-screen overflow-hidden bg-gradient-to-b ${theme.gradient} flex flex-col items-center p-3 md:p-4`}>
           <ConfettiEffect show={confetti} />
           <BadgePopup badge={newBadge} onClose={() => setNewBadge(null)} />
           <Header />
-          <div className="flex gap-2 mb-6">
+          <div className="flex gap-1.5 mb-3">
             {level.letters.map((l, i) => (
-              <div key={l} className={`w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center text-sm md:text-xl font-bold ${
-                i < learnIdx ? 'bg-green-400 text-white' : i === learnIdx ? 'bg-purple-500 text-white ring-4 ring-yellow-300' : 'bg-gray-200'
+              <div key={l} className={`w-7 h-7 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs md:text-lg font-bold ${
+                i < learnIdx ? 'bg-green-400 text-white' : i === learnIdx ? 'bg-purple-500 text-white ring-2 ring-yellow-300' : 'bg-gray-200'
               }`}>
                 {i < learnIdx ? '✓' : l}
               </div>
@@ -1219,9 +1218,9 @@ export default function AlphabetAdventure() {
           <div className="flex-1 flex flex-col items-center justify-center">
             <LetterCard letter={currentLetter} data={currentData} onClick={handleLearn} showLower={true} />
             {progress.settings.showPhonics && (
-              <p className="mt-4 text-xl text-gray-600">"{currentLetter}" says "<span className="font-bold" style={{ color: currentData.color }}>{currentData.phonics}</span>"</p>
+              <p className="mt-2 text-lg text-gray-600">"{currentLetter}" says "<span className="font-bold" style={{ color: currentData.color }}>{currentData.phonics}</span>"</p>
             )}
-            <p className="mt-4 text-lg text-gray-500">Tap to hear the letter!</p>
+            <p className="mt-2 text-base text-gray-500">Tap to hear the letter!</p>
           </div>
         </div>
       );
@@ -1230,7 +1229,7 @@ export default function AlphabetAdventure() {
     // Write mode
     if (level.mode === 'write') {
       return (
-        <div className={`min-h-screen bg-gradient-to-b from-cyan-200 via-teal-100 to-green-200 flex flex-col items-center p-4 md:p-8`}>
+        <div className={`h-screen overflow-hidden bg-gradient-to-b from-cyan-200 via-teal-100 to-green-200 flex flex-col items-center p-3 md:p-4`}>
           <ConfettiEffect show={confetti} />
           <BadgePopup badge={newBadge} onClose={() => setNewBadge(null)} />
           <Header />
@@ -1273,28 +1272,28 @@ export default function AlphabetAdventure() {
     // Find mode
     if (level.mode === 'find' || level.mode === 'review') {
       return (
-        <div className={`min-h-screen bg-gradient-to-b from-orange-200 via-yellow-100 to-green-200 flex flex-col items-center p-4 md:p-8`}>
+        <div className={`h-screen overflow-hidden bg-gradient-to-b from-orange-200 via-yellow-100 to-green-200 flex flex-col items-center p-3 md:p-4`}>
           <ConfettiEffect show={confetti} />
           <Header />
-          <div className="text-center mb-6">
-            <p className="text-xl md:text-3xl text-gray-600">Find the letter for:</p>
-            <div className="text-7xl md:text-9xl my-4">{letterData[target].emoji}</div>
-            <p className="text-2xl font-bold text-purple-600">{letterData[target].word}</p>
+          <div className="text-center mb-3">
+            <p className="text-lg md:text-2xl text-gray-600">Find the letter for:</p>
+            <div className="text-5xl md:text-7xl my-2">{letterData[target].emoji}</div>
+            <p className="text-xl font-bold text-purple-600">{letterData[target].word}</p>
           </div>
-          <div className="grid grid-cols-2 gap-4 w-full max-w-md">
+          <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
             {options.map(l => (
               <button
                 key={l}
                 onClick={() => handleFind(l)}
-                className="p-6 md:p-10 rounded-2xl text-5xl md:text-7xl font-bold shadow-lg transform hover:scale-105 active:scale-95"
+                className="p-4 md:p-6 rounded-2xl text-4xl md:text-5xl font-bold shadow-lg transform hover:scale-105 active:scale-95"
                 style={{ backgroundColor: letterData[l].color + '40', border: `3px solid ${letterData[l].color}`, color: letterData[l].color }}
               >
                 {l}
               </button>
             ))}
           </div>
-          {feedback && <p className="text-2xl font-bold mt-6 animate-bounce">{feedback}</p>}
-          <p className="mt-6 text-gray-500">{answered}/5 correct</p>
+          {feedback && <p className="text-xl font-bold mt-3 animate-bounce">{feedback}</p>}
+          <p className="mt-3 text-gray-500">{answered}/5 correct</p>
         </div>
       );
     }
@@ -1302,7 +1301,7 @@ export default function AlphabetAdventure() {
     // Match mode
     if (level.mode === 'match') {
       return (
-        <div className={`min-h-screen bg-gradient-to-b from-pink-200 via-purple-100 to-blue-200 flex flex-col items-center p-4 md:p-8`}>
+        <div className={`h-screen overflow-hidden bg-gradient-to-b from-pink-200 via-purple-100 to-blue-200 flex flex-col items-center p-3 md:p-4`}>
           <ConfettiEffect show={confetti} />
           <Header />
           <p className="text-xl md:text-3xl text-gray-600 mb-6">Match letters with pictures!</p>
@@ -1330,7 +1329,7 @@ export default function AlphabetAdventure() {
     // Bubble Pop
     if (level.mode === 'bubblePop') {
       return (
-        <div className={`min-h-screen bg-gradient-to-b ${theme.gradient} flex flex-col items-center p-4 md:p-8`}>
+        <div className={`h-screen overflow-hidden bg-gradient-to-b ${theme.gradient} flex flex-col items-center p-3 md:p-4`}>
           <ConfettiEffect show={confetti} />
           <Header />
           <BubblePop letters={level.letters} onComplete={() => { addScore(30); completeLevel(); }} />
@@ -1341,7 +1340,7 @@ export default function AlphabetAdventure() {
     // Drag Sort
     if (level.mode === 'dragSort') {
       return (
-        <div className={`min-h-screen bg-gradient-to-b ${theme.gradient} flex flex-col items-center p-4 md:p-8`}>
+        <div className={`h-screen overflow-hidden bg-gradient-to-b ${theme.gradient} flex flex-col items-center p-3 md:p-4`}>
           <ConfettiEffect show={confetti} />
           <Header />
           <DragSort letters={level.letters} onComplete={() => { addScore(30); completeLevel(); }} />
@@ -1352,7 +1351,7 @@ export default function AlphabetAdventure() {
     // Word Build
     if (level.mode === 'wordBuild') {
       return (
-        <div className={`min-h-screen bg-gradient-to-b ${theme.gradient} flex flex-col items-center p-4 md:p-8`}>
+        <div className={`h-screen overflow-hidden bg-gradient-to-b ${theme.gradient} flex flex-col items-center p-3 md:p-4`}>
           <ConfettiEffect show={confetti} />
           <Header />
           <WordBuild onComplete={() => { addScore(50); if (!progress.badges.includes('word-builder')) unlockBadge('word-builder'); completeLevel(); }} />
@@ -1363,7 +1362,7 @@ export default function AlphabetAdventure() {
     // Case Match
     if (level.mode === 'caseMatch') {
       return (
-        <div className={`min-h-screen bg-gradient-to-b ${theme.gradient} flex flex-col items-center p-4 md:p-8`}>
+        <div className={`h-screen overflow-hidden bg-gradient-to-b ${theme.gradient} flex flex-col items-center p-3 md:p-4`}>
           <ConfettiEffect show={confetti} />
           <Header />
           <CaseMatch letters={level.letters} onComplete={() => { addScore(30); completeLevel(); }} />
@@ -1374,7 +1373,7 @@ export default function AlphabetAdventure() {
     // Phonics
     if (level.mode === 'phonics') {
       return (
-        <div className={`min-h-screen bg-gradient-to-b ${theme.gradient} flex flex-col items-center p-4 md:p-8`}>
+        <div className={`h-screen overflow-hidden bg-gradient-to-b ${theme.gradient} flex flex-col items-center p-3 md:p-4`}>
           <ConfettiEffect show={confetti} />
           <Header />
           <PhonicsGame letters={level.letters} onComplete={() => { addScore(40); completeLevel(); }} />
