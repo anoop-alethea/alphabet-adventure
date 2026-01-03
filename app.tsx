@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 
-const letterData = {
+type LetterKey = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z';
+
+type LetterInfo = { word: string; emoji: string; color: string };
+
+const letterData: Record<LetterKey, LetterInfo> = {
   A: { word: 'Apple', emoji: '🍎', color: '#FF6B6B' },
   B: { word: 'Ball', emoji: '⚽', color: '#4ECDC4' },
   C: { word: 'Cat', emoji: '🐱', color: '#FFE66D' },
@@ -288,40 +292,48 @@ const LetterCard = ({ letter, data, onClick, size = 'large', showWord = true }) 
   </div>
 );
 
+type MatchItem = {
+  type: 'letter' | 'emoji';
+  value: string;
+  letter: LetterKey;
+  id: string;
+};
+
 export default function AlphabetAdventure() {
   const [screen, setScreen] = useState('home');
   const [currentLevel, setCurrentLevel] = useState(0);
   const [learnIndex, setLearnIndex] = useState(0);
   const [score, setScore] = useState(0);
-  const [targetLetter, setTargetLetter] = useState('');
-  const [options, setOptions] = useState([]);
+  const [targetLetter, setTargetLetter] = useState<LetterKey>('A');
+  const [options, setOptions] = useState<LetterKey[]>([]);
   const [feedback, setFeedback] = useState('');
   const [showConfetti, setShowConfetti] = useState(false);
-  const [completedLevels, setCompletedLevels] = useState([]);
+  const [completedLevels, setCompletedLevels] = useState<number[]>([]);
   const [questionsAnswered, setQuestionsAnswered] = useState(0);
-  const [matchPairs, setMatchPairs] = useState([]);
-  const [selectedMatch, setSelectedMatch] = useState(null);
-  const [matchedPairs, setMatchedPairs] = useState([]);
+  const [matchPairs, setMatchPairs] = useState<MatchItem[]>([]);
+  const [selectedMatch, setSelectedMatch] = useState<MatchItem | null>(null);
+  const [matchedPairs, setMatchedPairs] = useState<string[]>([]);
 
   const level = levels[currentLevel];
 
-  const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
+  const shuffle = <T,>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
 
   const setupFindGame = useCallback(() => {
-    const letters = level.letters;
+    const letters = level.letters as LetterKey[];
     const target = letters[Math.floor(Math.random() * letters.length)];
-    const wrong = Object.keys(letterData).filter(l => l !== target);
-    const opts = shuffle([target, ...shuffle(wrong).slice(0, 3)]);
+    const allLetters = Object.keys(letterData) as LetterKey[];
+    const wrong = allLetters.filter(l => l !== target);
+    const opts = shuffle<LetterKey>([target, ...shuffle(wrong).slice(0, 3)]);
     setTargetLetter(target);
     setOptions(opts);
     setFeedback('');
   }, [level]);
 
   const setupMatchGame = useCallback(() => {
-    const letters = shuffle(level.letters).slice(0, 4);
-    const pairs = shuffle([
-      ...letters.map(l => ({ type: 'letter', value: l, id: `l-${l}` })),
-      ...letters.map(l => ({ type: 'emoji', value: letterData[l].emoji, letter: l, id: `e-${l}` }))
+    const letters = shuffle(level.letters as LetterKey[]).slice(0, 4);
+    const pairs: MatchItem[] = shuffle([
+      ...letters.map(l => ({ type: 'letter' as const, value: l, letter: l, id: `l-${l}` })),
+      ...letters.map(l => ({ type: 'emoji' as const, value: letterData[l].emoji, letter: l, id: `e-${l}` }))
     ]);
     setMatchPairs(pairs);
     setSelectedMatch(null);
@@ -338,7 +350,7 @@ export default function AlphabetAdventure() {
   }, [screen, currentLevel, setupFindGame, setupMatchGame, level]);
 
   const handleLearnNext = () => {
-    const letter = level.letters[learnIndex];
+    const letter = level.letters[learnIndex] as LetterKey;
     speakLetter(letter, letterData[letter].word);
     if (learnIndex < level.letters.length - 1) {
       setTimeout(() => setLearnIndex(learnIndex + 1), 2000);
