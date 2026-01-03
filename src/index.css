@@ -2,38 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
-/* iPad touch optimization */
+/* Full native app feel - prevent ALL browser behaviors */
 * {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+  -webkit-user-drag: none;
+  box-sizing: border-box;
 }
 
-html, body {
-  touch-action: manipulation;
-  overscroll-behavior: none;
+html {
+  position: fixed;
+  height: 100%;
+  width: 100%;
   overflow: hidden;
-  height: 100%;
-  width: 100%;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
 }
 
-#root {
-  height: 100%;
-  width: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
+body {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  overscroll-behavior-y: contain;
+  touch-action: pan-x pan-y;
   -webkit-overflow-scrolling: touch;
 }
 
-button {
-  touch-action: manipulation;
-  cursor: pointer;
+#root {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Prevent zoom on double tap */
-button, a, input {
+/* Prevent zoom and context menus */
+button, a, input, div {
   touch-action: manipulation;
+  -webkit-touch-callout: none;
+}
+
+button {
+  cursor: pointer;
+  outline: none;
+  border: none;
+  -webkit-appearance: none;
+}
+
+/* Prevent image dragging */
+img, svg {
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* Smooth scrolling for content */
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Prevent text selection on long press */
+p, span, h1, h2, h3, h4, h5, h6, div {
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* Larger touch targets for iPad */
@@ -42,4 +85,14 @@ button, a, input {
     min-height: 60px;
     min-width: 60px;
   }
+}
+
+/* Hide scrollbar but keep functionality */
+#root::-webkit-scrollbar {
+  display: none;
+}
+
+#root {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
