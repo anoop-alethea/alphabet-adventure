@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 const letterData = {
   A: { word: 'Apple', emoji: '🍎', color: '#FF6B6B' },
@@ -29,16 +29,51 @@ const letterData = {
   Z: { word: 'Zebra', emoji: '🦓', color: '#2C3E50' }
 };
 
+// Dot positions for each letter (x, y as percentages of canvas)
+const letterDots = {
+  A: [{ x: 50, y: 10 }, { x: 25, y: 90 }, { x: 50, y: 10 }, { x: 75, y: 90 }, { x: 35, y: 55 }, { x: 65, y: 55 }],
+  B: [{ x: 25, y: 10 }, { x: 25, y: 90 }, { x: 25, y: 10 }, { x: 60, y: 10 }, { x: 70, y: 25 }, { x: 60, y: 45 }, { x: 25, y: 50 }, { x: 65, y: 50 }, { x: 75, y: 70 }, { x: 60, y: 90 }, { x: 25, y: 90 }],
+  C: [{ x: 75, y: 25 }, { x: 50, y: 10 }, { x: 25, y: 30 }, { x: 20, y: 50 }, { x: 25, y: 70 }, { x: 50, y: 90 }, { x: 75, y: 75 }],
+  D: [{ x: 25, y: 10 }, { x: 25, y: 90 }, { x: 25, y: 10 }, { x: 55, y: 10 }, { x: 75, y: 30 }, { x: 75, y: 70 }, { x: 55, y: 90 }, { x: 25, y: 90 }],
+  E: [{ x: 70, y: 10 }, { x: 25, y: 10 }, { x: 25, y: 50 }, { x: 60, y: 50 }, { x: 25, y: 50 }, { x: 25, y: 90 }, { x: 70, y: 90 }],
+  F: [{ x: 70, y: 10 }, { x: 25, y: 10 }, { x: 25, y: 50 }, { x: 55, y: 50 }, { x: 25, y: 50 }, { x: 25, y: 90 }],
+  G: [{ x: 70, y: 25 }, { x: 50, y: 10 }, { x: 25, y: 30 }, { x: 20, y: 50 }, { x: 25, y: 70 }, { x: 50, y: 90 }, { x: 70, y: 75 }, { x: 70, y: 55 }, { x: 50, y: 55 }],
+  H: [{ x: 25, y: 10 }, { x: 25, y: 90 }, { x: 25, y: 50 }, { x: 75, y: 50 }, { x: 75, y: 10 }, { x: 75, y: 90 }],
+  I: [{ x: 35, y: 10 }, { x: 65, y: 10 }, { x: 50, y: 10 }, { x: 50, y: 90 }, { x: 35, y: 90 }, { x: 65, y: 90 }],
+  J: [{ x: 35, y: 10 }, { x: 65, y: 10 }, { x: 55, y: 10 }, { x: 55, y: 70 }, { x: 45, y: 90 }, { x: 25, y: 80 }],
+  K: [{ x: 25, y: 10 }, { x: 25, y: 90 }, { x: 25, y: 55 }, { x: 70, y: 10 }, { x: 25, y: 55 }, { x: 70, y: 90 }],
+  L: [{ x: 25, y: 10 }, { x: 25, y: 90 }, { x: 70, y: 90 }],
+  M: [{ x: 15, y: 90 }, { x: 15, y: 10 }, { x: 50, y: 55 }, { x: 85, y: 10 }, { x: 85, y: 90 }],
+  N: [{ x: 25, y: 90 }, { x: 25, y: 10 }, { x: 75, y: 90 }, { x: 75, y: 10 }],
+  O: [{ x: 50, y: 10 }, { x: 25, y: 25 }, { x: 20, y: 50 }, { x: 25, y: 75 }, { x: 50, y: 90 }, { x: 75, y: 75 }, { x: 80, y: 50 }, { x: 75, y: 25 }, { x: 50, y: 10 }],
+  P: [{ x: 25, y: 90 }, { x: 25, y: 10 }, { x: 60, y: 10 }, { x: 70, y: 25 }, { x: 60, y: 45 }, { x: 25, y: 50 }],
+  Q: [{ x: 50, y: 10 }, { x: 25, y: 25 }, { x: 20, y: 50 }, { x: 25, y: 75 }, { x: 50, y: 90 }, { x: 75, y: 75 }, { x: 80, y: 50 }, { x: 75, y: 25 }, { x: 50, y: 10 }, { x: 60, y: 70 }, { x: 80, y: 95 }],
+  R: [{ x: 25, y: 90 }, { x: 25, y: 10 }, { x: 60, y: 10 }, { x: 70, y: 25 }, { x: 60, y: 45 }, { x: 25, y: 50 }, { x: 50, y: 50 }, { x: 75, y: 90 }],
+  S: [{ x: 70, y: 20 }, { x: 50, y: 10 }, { x: 30, y: 20 }, { x: 30, y: 35 }, { x: 50, y: 50 }, { x: 70, y: 65 }, { x: 70, y: 80 }, { x: 50, y: 90 }, { x: 30, y: 80 }],
+  T: [{ x: 20, y: 10 }, { x: 80, y: 10 }, { x: 50, y: 10 }, { x: 50, y: 90 }],
+  U: [{ x: 25, y: 10 }, { x: 25, y: 70 }, { x: 35, y: 85 }, { x: 50, y: 90 }, { x: 65, y: 85 }, { x: 75, y: 70 }, { x: 75, y: 10 }],
+  V: [{ x: 20, y: 10 }, { x: 50, y: 90 }, { x: 80, y: 10 }],
+  W: [{ x: 10, y: 10 }, { x: 25, y: 90 }, { x: 50, y: 50 }, { x: 75, y: 90 }, { x: 90, y: 10 }],
+  X: [{ x: 20, y: 10 }, { x: 80, y: 90 }, { x: 50, y: 50 }, { x: 80, y: 10 }, { x: 20, y: 90 }],
+  Y: [{ x: 20, y: 10 }, { x: 50, y: 50 }, { x: 80, y: 10 }, { x: 50, y: 50 }, { x: 50, y: 90 }],
+  Z: [{ x: 20, y: 10 }, { x: 80, y: 10 }, { x: 20, y: 90 }, { x: 80, y: 90 }]
+};
+
 const levels = [
   { name: 'Meet the Letters', letters: ['A', 'B', 'C', 'D', 'E'], mode: 'learn', icon: '👋' },
+  { name: 'Write A-E', letters: ['A', 'B', 'C', 'D', 'E'], mode: 'write', icon: '✏️' },
   { name: 'Find the Letter', letters: ['A', 'B', 'C', 'D', 'E'], mode: 'find', icon: '🔍' },
   { name: 'More Friends', letters: ['F', 'G', 'H', 'I', 'J'], mode: 'learn', icon: '🌟' },
+  { name: 'Write F-J', letters: ['F', 'G', 'H', 'I', 'J'], mode: 'write', icon: '✏️' },
   { name: 'Letter Hunt', letters: ['F', 'G', 'H', 'I', 'J'], mode: 'find', icon: '🎯' },
   { name: 'Keep Going', letters: ['K', 'L', 'M', 'N', 'O'], mode: 'learn', icon: '🚀' },
+  { name: 'Write K-O', letters: ['K', 'L', 'M', 'N', 'O'], mode: 'write', icon: '✏️' },
   { name: 'Match Time', letters: ['K', 'L', 'M', 'N', 'O'], mode: 'match', icon: '🧩' },
   { name: 'Almost There', letters: ['P', 'Q', 'R', 'S', 'T'], mode: 'learn', icon: '⭐' },
+  { name: 'Write P-T', letters: ['P', 'Q', 'R', 'S', 'T'], mode: 'write', icon: '✏️' },
   { name: 'Picture Match', letters: ['P', 'Q', 'R', 'S', 'T'], mode: 'match', icon: '🖼️' },
   { name: 'Final Letters', letters: ['U', 'V', 'W', 'X', 'Y', 'Z'], mode: 'learn', icon: '🎉' },
+  { name: 'Write U-Z', letters: ['U', 'V', 'W', 'X', 'Y', 'Z'], mode: 'write', icon: '✏️' },
   { name: 'Last Challenge', letters: ['U', 'V', 'W', 'X', 'Y', 'Z'], mode: 'find', icon: '🏆' },
   { name: 'All Letters Review', letters: Object.keys(letterData), mode: 'review', icon: '📚' },
   { name: 'Grand Finale', letters: Object.keys(letterData), mode: 'match', icon: '👑' }
@@ -47,7 +82,7 @@ const levels = [
 const speakLetter = (letter, word) => {
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
-    const u1 = new SpeechSynthesisUtterance(letter);
+    const u1 = new SpeechSynthesisUtterance(letter.toLowerCase());
     u1.rate = 0.7;
     u1.pitch = 1.2;
     window.speechSynthesis.speak(u1);
@@ -100,17 +135,156 @@ const ConfettiEffect = ({ show }) => {
   );
 };
 
+const ConnectDots = ({ letter, color, onComplete }) => {
+  const [connectedDots, setConnectedDots] = useState([]);
+  const [lines, setLines] = useState([]);
+  const [isComplete, setIsComplete] = useState(false);
+  const dots = letterDots[letter] || [];
+
+  // Responsive size - bigger on iPad
+  const isLargeScreen = typeof window !== 'undefined' && window.innerWidth >= 768;
+  const size = isLargeScreen ? 450 : 280;
+  const dotSize = isLargeScreen ? 60 : 44;
+  const nextDotSize = isLargeScreen ? 75 : 55;
+
+  const getPos = (dot) => ({ x: (dot.x / 100) * size, y: (dot.y / 100) * size });
+
+  const handleDotClick = (index) => {
+    if (isComplete) return;
+    if (index === connectedDots.length) {
+      const newConnected = [...connectedDots, index];
+      setConnectedDots(newConnected);
+
+      if (newConnected.length > 1) {
+        const from = getPos(dots[newConnected[newConnected.length - 2]]);
+        const to = getPos(dots[index]);
+        setLines([...lines, { from, to }]);
+      }
+
+      if (newConnected.length === dots.length) {
+        setIsComplete(true);
+        setTimeout(() => {
+          celebrate();
+          speakLetter(letter, letterData[letter].word);
+          onComplete();
+        }, 500);
+      }
+    }
+  };
+
+  const resetDrawing = () => {
+    setConnectedDots([]);
+    setLines([]);
+    setIsComplete(false);
+  };
+
+  return (
+    <div className="flex flex-col items-center">
+      <div
+        className="relative bg-white rounded-3xl shadow-2xl"
+        style={{ width: size + 40, height: size + 40, padding: 20 }}
+      >
+        {/* Lines SVG */}
+        <svg
+          width={size}
+          height={size}
+          className="absolute"
+          style={{ top: 20, left: 20 }}
+        >
+          {lines.map((line, i) => (
+            <line
+              key={i}
+              x1={line.from.x}
+              y1={line.from.y}
+              x2={line.to.x}
+              y2={line.to.y}
+              stroke={color}
+              strokeWidth={isLargeScreen ? 8 : 6}
+              strokeLinecap="round"
+            />
+          ))}
+        </svg>
+
+        {/* Background letter guide */}
+        <div
+          className="absolute pointer-events-none flex items-center justify-center"
+          style={{ width: size, height: size, top: 20, left: 20, opacity: 0.08 }}
+        >
+          <span className="font-bold" style={{ fontSize: size * 0.85, color }}>{letter}</span>
+        </div>
+
+        {/* Dots */}
+        <div className="absolute" style={{ width: size, height: size, top: 20, left: 20 }}>
+          {dots.map((dot, i) => {
+            const pos = getPos(dot);
+            const isConnected = connectedDots.includes(i);
+            const isNext = i === connectedDots.length && !isComplete;
+            const currentSize = isNext ? nextDotSize : dotSize;
+            return (
+              <button
+                key={i}
+                onClick={() => handleDotClick(i)}
+                className={`absolute rounded-full flex items-center justify-center font-bold text-white transition-all duration-300 ${
+                  isConnected
+                    ? 'scale-90'
+                    : isNext
+                    ? 'animate-pulse ring-4 ring-yellow-400 shadow-lg'
+                    : ''
+                }`}
+                style={{
+                  left: pos.x - currentSize / 2,
+                  top: pos.y - currentSize / 2,
+                  width: currentSize,
+                  height: currentSize,
+                  backgroundColor: isConnected ? '#10B981' : isNext ? color : color + 'AA',
+                  fontSize: isLargeScreen ? (isNext ? '24px' : '20px') : (isNext ? '18px' : '14px'),
+                  boxShadow: isNext ? '0 0 20px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.2)'
+                }}
+              >
+                {isConnected ? '✓' : i + 1}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Completion overlay */}
+        {isComplete && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-3xl">
+            <div className="text-center">
+              <div className="text-6xl md:text-8xl mb-2">🎉</div>
+              <p className="text-2xl md:text-3xl font-bold text-green-500">Perfect!</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <button
+        onClick={resetDrawing}
+        className="mt-4 md:mt-6 px-6 py-3 md:px-8 md:py-4 bg-gray-200 hover:bg-gray-300 rounded-full font-bold text-gray-700 text-lg md:text-xl active:scale-95 transition-all"
+      >
+        🔄 Start Over
+      </button>
+
+      {!isComplete && (
+        <p className="mt-3 text-gray-500 text-lg md:text-xl text-center">
+          Tap dot <span className="font-bold text-xl md:text-2xl" style={{ color }}>{connectedDots.length + 1}</span> next!
+        </p>
+      )}
+    </div>
+  );
+};
+
 const LetterCard = ({ letter, data, onClick, size = 'large', showWord = true }) => (
   <div
     onClick={onClick}
-    className={`cursor-pointer rounded-3xl shadow-lg transform transition-all duration-300 hover:scale-105 active:scale-95 flex flex-col items-center justify-center ${size === 'large' ? 'p-6' : 'p-3'}`}
+    className={`cursor-pointer rounded-3xl shadow-lg transform transition-all duration-300 hover:scale-105 active:scale-95 flex flex-col items-center justify-center ${size === 'large' ? 'p-8 md:p-12' : 'p-4 md:p-6'}`}
     style={{ backgroundColor: data.color + '30', border: `4px solid ${data.color}` }}
   >
-    <span className={size === 'large' ? 'text-7xl font-bold' : 'text-4xl font-bold'} style={{ color: data.color }}>
+    <span className={size === 'large' ? 'text-7xl md:text-9xl font-bold' : 'text-4xl md:text-6xl font-bold'} style={{ color: data.color }}>
       {letter}
     </span>
-    <span className={size === 'large' ? 'text-6xl my-2' : 'text-3xl my-1'}>{data.emoji}</span>
-    {showWord && <span className={`font-semibold ${size === 'large' ? 'text-xl' : 'text-sm'}`} style={{ color: data.color }}>{data.word}</span>}
+    <span className={size === 'large' ? 'text-6xl md:text-8xl my-2 md:my-4' : 'text-3xl md:text-5xl my-1 md:my-2'}>{data.emoji}</span>
+    {showWord && <span className={`font-semibold ${size === 'large' ? 'text-xl md:text-3xl' : 'text-sm md:text-xl'}`} style={{ color: data.color }}>{data.word}</span>}
   </div>
 );
 
@@ -249,17 +423,17 @@ export default function AlphabetAdventure() {
 
   if (screen === 'home') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-200 via-purple-100 to-pink-200 p-4 flex flex-col items-center">
+      <div className="min-h-screen bg-gradient-to-b from-blue-200 via-purple-100 to-pink-200 p-4 md:p-8 flex flex-col items-center">
         <ConfettiEffect show={showConfetti} />
-        <h1 className="text-4xl font-bold text-purple-600 mb-2 text-center">🌈 Alphabet Adventure 🌈</h1>
-        <p className="text-lg text-gray-600 mb-4">Learn your ABCs!</p>
-        <div className="grid grid-cols-2 gap-3 w-full max-w-md">
+        <h1 className="text-4xl md:text-6xl font-bold text-purple-600 mb-2 md:mb-4 text-center">🌈 Alphabet Adventure 🌈</h1>
+        <p className="text-lg md:text-2xl text-gray-600 mb-4 md:mb-8">Learn your ABCs!</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 w-full max-w-md md:max-w-4xl">
           {levels.map((lvl, idx) => (
             <button
               key={idx}
               onClick={() => startLevel(idx)}
               disabled={idx > 0 && !completedLevels.includes(idx - 1)}
-              className={`p-3 rounded-2xl font-bold text-white shadow-lg transform transition-all ${
+              className={`p-4 md:p-6 rounded-2xl md:rounded-3xl font-bold text-white shadow-lg transform transition-all active:scale-95 ${
                 completedLevels.includes(idx)
                   ? 'bg-green-400'
                   : idx === 0 || completedLevels.includes(idx - 1)
@@ -267,14 +441,14 @@ export default function AlphabetAdventure() {
                   : 'bg-gray-300 cursor-not-allowed'
               }`}
             >
-              <span className="text-2xl">{lvl.icon}</span>
-              <p className="text-xs mt-1">{lvl.name}</p>
-              {completedLevels.includes(idx) && <span className="text-xs">✓</span>}
+              <span className="text-3xl md:text-5xl">{lvl.icon}</span>
+              <p className="text-sm md:text-lg mt-1 md:mt-2">{lvl.name}</p>
+              {completedLevels.includes(idx) && <span className="text-sm md:text-lg">✓</span>}
             </button>
           ))}
         </div>
-        <div className="mt-4 bg-white/80 rounded-xl p-3 text-center">
-          <p className="text-purple-600 font-bold">⭐ Score: {score}</p>
+        <div className="mt-4 md:mt-8 bg-white/80 rounded-xl md:rounded-2xl p-4 md:p-6 text-center">
+          <p className="text-purple-600 font-bold text-lg md:text-2xl">⭐ Score: {score}</p>
         </div>
       </div>
     );
@@ -282,17 +456,17 @@ export default function AlphabetAdventure() {
 
   if (screen === 'levelComplete') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-yellow-200 via-orange-100 to-pink-200 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-b from-yellow-200 via-orange-100 to-pink-200 flex flex-col items-center justify-center p-4 md:p-8">
         <ConfettiEffect show={true} />
-        <div className="text-8xl mb-4">🎉</div>
-        <h1 className="text-3xl font-bold text-orange-500 mb-2">Level Complete!</h1>
-        <p className="text-xl text-gray-600 mb-4">{level.name}</p>
-        <p className="text-2xl font-bold text-purple-600 mb-6">Score: {score}</p>
-        <div className="flex gap-4">
-          <button onClick={() => setScreen('home')} className="px-6 py-3 bg-gray-400 text-white rounded-full font-bold">
+        <div className="text-8xl md:text-[10rem] mb-4 md:mb-8">🎉</div>
+        <h1 className="text-3xl md:text-5xl font-bold text-orange-500 mb-2 md:mb-4">Level Complete!</h1>
+        <p className="text-xl md:text-3xl text-gray-600 mb-4 md:mb-6">{level.name}</p>
+        <p className="text-2xl md:text-4xl font-bold text-purple-600 mb-6 md:mb-10">Score: {score}</p>
+        <div className="flex gap-4 md:gap-8">
+          <button onClick={() => setScreen('home')} className="px-6 py-3 md:px-10 md:py-5 bg-gray-400 text-white rounded-full font-bold text-lg md:text-2xl active:scale-95 transition-transform">
             🏠 Home
           </button>
-          <button onClick={nextLevel} className="px-6 py-3 bg-gradient-to-r from-green-400 to-blue-400 text-white rounded-full font-bold">
+          <button onClick={nextLevel} className="px-6 py-3 md:px-10 md:py-5 bg-gradient-to-r from-green-400 to-blue-400 text-white rounded-full font-bold text-lg md:text-2xl active:scale-95 transition-transform">
             {currentLevel < levels.length - 1 ? '➡️ Next Level' : '🏆 Finish'}
           </button>
         </div>
@@ -302,18 +476,18 @@ export default function AlphabetAdventure() {
 
   if (screen === 'complete') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-yellow-300 via-pink-200 to-purple-300 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-b from-yellow-300 via-pink-200 to-purple-300 flex flex-col items-center justify-center p-4 md:p-8">
         <ConfettiEffect show={true} />
-        <div className="text-8xl mb-4">👑</div>
-        <h1 className="text-4xl font-bold text-purple-600 mb-2">You're an ABC Champion!</h1>
-        <p className="text-xl text-gray-600 mb-4">You learned all 26 letters!</p>
-        <div className="flex flex-wrap justify-center gap-2 max-w-md mb-6">
+        <div className="text-8xl md:text-[10rem] mb-4 md:mb-8">👑</div>
+        <h1 className="text-4xl md:text-6xl font-bold text-purple-600 mb-2 md:mb-4">You're an ABC Champion!</h1>
+        <p className="text-xl md:text-3xl text-gray-600 mb-4 md:mb-8">You learned all 26 letters!</p>
+        <div className="flex flex-wrap justify-center gap-2 md:gap-4 max-w-md md:max-w-2xl mb-6 md:mb-10">
           {Object.keys(letterData).map(l => (
-            <span key={l} className="text-2xl font-bold" style={{ color: letterData[l].color }}>{l}</span>
+            <span key={l} className="text-2xl md:text-4xl font-bold" style={{ color: letterData[l].color }}>{l}</span>
           ))}
         </div>
-        <p className="text-3xl font-bold text-orange-500 mb-6">Final Score: {score}</p>
-        <button onClick={() => { setScreen('home'); setCurrentLevel(0); setCompletedLevels([]); setScore(0); }} className="px-8 py-4 bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-full font-bold text-xl">
+        <p className="text-3xl md:text-5xl font-bold text-orange-500 mb-6 md:mb-10">Final Score: {score}</p>
+        <button onClick={() => { setScreen('home'); setCurrentLevel(0); setCompletedLevels([]); setScore(0); }} className="px-8 py-4 md:px-12 md:py-6 bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-full font-bold text-xl md:text-3xl active:scale-95 transition-transform">
           🔄 Play Again
         </button>
       </div>
@@ -326,23 +500,23 @@ export default function AlphabetAdventure() {
 
     if (level.mode === 'learn') {
       return (
-        <div className="min-h-screen bg-gradient-to-b from-green-200 via-blue-100 to-purple-200 flex flex-col items-center p-4">
+        <div className="min-h-screen bg-gradient-to-b from-green-200 via-blue-100 to-purple-200 flex flex-col items-center p-4 md:p-8">
           <ConfettiEffect show={showConfetti} />
-          <div className="flex justify-between w-full max-w-md mb-4">
-            <button onClick={() => setScreen('home')} className="text-2xl">🏠</button>
-            <p className="text-lg font-bold text-purple-600">{level.name}</p>
-            <p className="text-lg font-bold text-orange-500">⭐{score}</p>
+          <div className="flex justify-between w-full max-w-md md:max-w-2xl mb-4 md:mb-8">
+            <button onClick={() => setScreen('home')} className="text-2xl md:text-4xl active:scale-95 transition-transform p-2">🏠</button>
+            <p className="text-lg md:text-2xl font-bold text-purple-600">{level.name}</p>
+            <p className="text-lg md:text-2xl font-bold text-orange-500">⭐{score}</p>
           </div>
-          <div className="flex gap-2 mb-4">
+          <div className="flex gap-2 md:gap-4 mb-4 md:mb-8">
             {level.letters.map((l, i) => (
-              <div key={l} className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${i <= learnIndex ? 'bg-green-400 text-white' : 'bg-gray-200'}`}>
+              <div key={l} className={`w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center text-sm md:text-xl font-bold ${i <= learnIndex ? 'bg-green-400 text-white' : 'bg-gray-200'}`}>
                 {l}
               </div>
             ))}
           </div>
           <div className="flex-1 flex flex-col items-center justify-center">
             <LetterCard letter={currentLetter} data={currentData} onClick={handleLearnNext} />
-            <p className="mt-6 text-xl text-gray-600">Tap to hear the letter!</p>
+            <p className="mt-6 md:mt-10 text-xl md:text-3xl text-gray-600">Tap to hear the letter!</p>
           </div>
         </div>
       );
@@ -350,47 +524,47 @@ export default function AlphabetAdventure() {
 
     if (level.mode === 'find' || level.mode === 'review') {
       return (
-        <div className="min-h-screen bg-gradient-to-b from-orange-200 via-yellow-100 to-green-200 flex flex-col items-center p-4">
+        <div className="min-h-screen bg-gradient-to-b from-orange-200 via-yellow-100 to-green-200 flex flex-col items-center p-4 md:p-8">
           <ConfettiEffect show={showConfetti} />
-          <div className="flex justify-between w-full max-w-md mb-4">
-            <button onClick={() => setScreen('home')} className="text-2xl">🏠</button>
-            <p className="text-lg font-bold text-purple-600">{level.name}</p>
-            <p className="text-lg font-bold text-orange-500">⭐{score}</p>
+          <div className="flex justify-between w-full max-w-md md:max-w-2xl mb-4 md:mb-8">
+            <button onClick={() => setScreen('home')} className="text-2xl md:text-4xl active:scale-95 transition-transform p-2">🏠</button>
+            <p className="text-lg md:text-2xl font-bold text-purple-600">{level.name}</p>
+            <p className="text-lg md:text-2xl font-bold text-orange-500">⭐{score}</p>
           </div>
-          <div className="text-center mb-4">
-            <p className="text-xl text-gray-600">Find the letter for:</p>
-            <div className="text-7xl my-2">{letterData[targetLetter].emoji}</div>
-            <p className="text-2xl font-bold text-purple-600">{letterData[targetLetter].word}</p>
+          <div className="text-center mb-4 md:mb-8">
+            <p className="text-xl md:text-3xl text-gray-600">Find the letter for:</p>
+            <div className="text-7xl md:text-9xl my-2 md:my-6">{letterData[targetLetter].emoji}</div>
+            <p className="text-2xl md:text-4xl font-bold text-purple-600">{letterData[targetLetter].word}</p>
           </div>
-          <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
+          <div className="grid grid-cols-2 gap-4 md:gap-8 w-full max-w-sm md:max-w-xl">
             {options.map(l => (
               <button
                 key={l}
                 onClick={() => handleFindAnswer(l)}
-                className="p-6 rounded-2xl text-5xl font-bold shadow-lg transform transition-all hover:scale-105 active:scale-95"
+                className="p-6 md:p-10 rounded-2xl md:rounded-3xl text-5xl md:text-7xl font-bold shadow-lg transform transition-all hover:scale-105 active:scale-95"
                 style={{ backgroundColor: letterData[l].color + '40', border: `3px solid ${letterData[l].color}`, color: letterData[l].color }}
               >
                 {l}
               </button>
             ))}
           </div>
-          {feedback && <p className="text-2xl font-bold mt-4 animate-bounce">{feedback}</p>}
-          <p className="mt-4 text-gray-500">{questionsAnswered}/5 correct</p>
+          {feedback && <p className="text-2xl md:text-4xl font-bold mt-4 md:mt-8 animate-bounce">{feedback}</p>}
+          <p className="mt-4 md:mt-8 text-gray-500 text-lg md:text-2xl">{questionsAnswered}/5 correct</p>
         </div>
       );
     }
 
     if (level.mode === 'match') {
       return (
-        <div className="min-h-screen bg-gradient-to-b from-pink-200 via-purple-100 to-blue-200 flex flex-col items-center p-4">
+        <div className="min-h-screen bg-gradient-to-b from-pink-200 via-purple-100 to-blue-200 flex flex-col items-center p-4 md:p-8">
           <ConfettiEffect show={showConfetti} />
-          <div className="flex justify-between w-full max-w-md mb-4">
-            <button onClick={() => setScreen('home')} className="text-2xl">🏠</button>
-            <p className="text-lg font-bold text-purple-600">{level.name}</p>
-            <p className="text-lg font-bold text-orange-500">⭐{score}</p>
+          <div className="flex justify-between w-full max-w-md md:max-w-2xl mb-4 md:mb-8">
+            <button onClick={() => setScreen('home')} className="text-2xl md:text-4xl active:scale-95 transition-transform p-2">🏠</button>
+            <p className="text-lg md:text-2xl font-bold text-purple-600">{level.name}</p>
+            <p className="text-lg md:text-2xl font-bold text-orange-500">⭐{score}</p>
           </div>
-          <p className="text-xl text-gray-600 mb-4">Match letters with pictures!</p>
-          <div className="grid grid-cols-4 gap-3 w-full max-w-md">
+          <p className="text-xl md:text-3xl text-gray-600 mb-4 md:mb-8">Match letters with pictures!</p>
+          <div className="grid grid-cols-4 gap-3 md:gap-6 w-full max-w-md md:max-w-2xl">
             {matchPairs.map(item => {
               const isMatched = matchedPairs.includes(item.id);
               const isSelected = selectedMatch?.id === item.id;
@@ -399,8 +573,8 @@ export default function AlphabetAdventure() {
                 <button
                   key={item.id}
                   onClick={() => handleMatchSelect(item)}
-                  className={`p-4 rounded-xl text-3xl font-bold shadow-lg transition-all ${
-                    isMatched ? 'opacity-30' : isSelected ? 'ring-4 ring-yellow-400 scale-105' : 'hover:scale-105'
+                  className={`p-4 md:p-8 rounded-xl md:rounded-2xl text-3xl md:text-5xl font-bold shadow-lg transition-all active:scale-95 ${
+                    isMatched ? 'opacity-30' : isSelected ? 'ring-4 md:ring-8 ring-yellow-400 scale-105' : 'hover:scale-105'
                   }`}
                   style={{ backgroundColor: letterData[letter].color + '40', border: `2px solid ${letterData[letter].color}` }}
                   disabled={isMatched}
@@ -410,8 +584,56 @@ export default function AlphabetAdventure() {
               );
             })}
           </div>
-          {feedback && <p className="text-2xl font-bold mt-4 animate-bounce">{feedback}</p>}
-          <p className="mt-4 text-gray-500">{matchedPairs.length / 2}/{matchPairs.length / 2} matched</p>
+          {feedback && <p className="text-2xl md:text-4xl font-bold mt-4 md:mt-8 animate-bounce">{feedback}</p>}
+          <p className="mt-4 md:mt-8 text-gray-500 text-lg md:text-2xl">{matchedPairs.length / 2}/{matchPairs.length / 2} matched</p>
+        </div>
+      );
+    }
+
+    if (level.mode === 'write') {
+      const handleWriteComplete = () => {
+        setScore(score + 20);
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 2000);
+
+        if (learnIndex < level.letters.length - 1) {
+          setTimeout(() => setLearnIndex(learnIndex + 1), 1500);
+        } else {
+          setTimeout(() => {
+            setCompletedLevels([...completedLevels, currentLevel]);
+            setScreen('levelComplete');
+          }, 2000);
+        }
+      };
+
+      return (
+        <div className="min-h-screen bg-gradient-to-b from-cyan-200 via-teal-100 to-green-200 flex flex-col items-center p-4 md:p-8">
+          <ConfettiEffect show={showConfetti} />
+          <div className="flex justify-between w-full max-w-md md:max-w-2xl mb-4 md:mb-6">
+            <button onClick={() => setScreen('home')} className="text-2xl md:text-4xl active:scale-95 transition-transform p-2">🏠</button>
+            <p className="text-lg md:text-2xl font-bold text-teal-600">{level.name}</p>
+            <p className="text-lg md:text-2xl font-bold text-orange-500">⭐{score}</p>
+          </div>
+          <div className="flex gap-2 md:gap-4 mb-4">
+            {level.letters.map((l, i) => (
+              <div key={l} className={`w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center text-sm md:text-xl font-bold ${i < learnIndex ? 'bg-green-400 text-white' : i === learnIndex ? 'bg-teal-500 text-white ring-4 ring-yellow-300' : 'bg-gray-200'}`}>
+                {i < learnIndex ? '✓' : l}
+              </div>
+            ))}
+          </div>
+          <div className="text-center mb-4">
+            <p className="text-xl md:text-2xl text-gray-600">Connect the dots to write:</p>
+            <div className="flex items-center justify-center gap-4 mt-2">
+              <span className="text-5xl md:text-7xl font-bold" style={{ color: currentData.color }}>{currentLetter}</span>
+              <span className="text-4xl md:text-6xl">{currentData.emoji}</span>
+            </div>
+          </div>
+          <ConnectDots
+            key={currentLetter}
+            letter={currentLetter}
+            color={currentData.color}
+            onComplete={handleWriteComplete}
+          />
         </div>
       );
     }
